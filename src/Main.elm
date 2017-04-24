@@ -5,32 +5,31 @@ import Html.Attributes as HA
 import Html.Events as HE
 
 
+type Position
+    = TopLeft
+    | Top
+    | TopRight
+    | Left
+    | Center
+    | Right
+    | BottomLeft
+    | Bottom
+    | BottomRight
+
+
 type Msg
-    = Clicked (Board -> Board)
+    = Clicked Position
 
 
-type PlaceVal
-    = Empty
-    | X
-    | O
+type alias PlaceVal = Maybe Player
 
 
 type Player
-    = PlayerX
-    | PlayerO
+    = X
+    | O
 
 
-type alias Board =
-    { topLeft : PlaceVal
-    , top : PlaceVal
-    , topRight : PlaceVal
-    , left : PlaceVal
-    , center : PlaceVal
-    , right : PlaceVal
-    , bottomLeft : PlaceVal
-    , bottom : PlaceVal
-    , bottomRight : PlaceVal
-    }
+type alias Board = List (Position, Player)
 
 
 type alias Model =
@@ -49,55 +48,66 @@ main =
 
 init : ( Model, Cmd Msg )
 init =
-    ( { currentPlayer = PlayerX
-      , board =
-            { topLeft = Empty
-            , top = Empty
-            , topRight = Empty
-            , left = Empty
-            , center = Empty
-            , right = Empty
-            , bottomLeft = Empty
-            , bottom = Empty
-            , bottomRight = Empty
-            }
+    ( { currentPlayer = X
+      , board = []
       }
     , Cmd.none
     )
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
-update msg model =
-    ( model, Cmd.none )
+update msg { currentPlayer, board } =
+  case msg of
+    Clicked position ->
+      ( { currentPlayer = nextPlayer currentPlayer
+        , board = setPosition position currentPlayer board }, Cmd.none )
 
+nextPlayer : Player -> Player
+nextPlayer player =
+  case player of
+    X -> O
+    O -> X
 
 view : Model -> Html Msg
 view { currentPlayer, board } =
     H.div []
-        [ drawRow board.topLeft board.top board.topRight
-        , drawRow board.left board.center board.right
-        , drawRow board.bottomLeft board.bottom board.bottomRight
+        [ drawRow board TopLeft Top TopRight
+        , drawRow board Left Center Right
+        , drawRow board BottomLeft Bottom BottomRight
         ]
 
 
-drawRow : PlaceVal -> PlaceVal -> PlaceVal -> Html Msg
-drawRow col1 col2 col3 =
-    H.div [ HA.class "game-row" ] [ drawBox col1, drawBox col2, drawBox col3 ]
+drawRow : Board -> Position -> Position -> Position -> Html Msg
+drawRow board left center right =
+    H.div [ HA.class "game-row" ] [ drawBox board left, drawBox board center, drawBox board right ]
 
 
-drawBox : PlaceVal -> Html Msg
-drawBox place =
-    H.span [ HA.class "box" ] [ H.text (boxText place) ]
+drawBox : Board -> Position -> Html Msg
+drawBox board position =
+    H.span [ HA.class "box", HE.onClick (Clicked position) ] [ H.text (boxText (getPosition position board)) ]
 
 
-boxText : PlaceVal -> String
+getPosition : Position -> Board -> Maybe Player
+getPosition position board =
+  board
+  |> List.filter (\(pos, player) -> pos == position)
+  |> List.head
+  |> Maybe.map (\(pos, player) -> player)
+
+
+setPosition : Position -> Player -> Board -> Board
+setPosition position player board =
+  ( position, player ) :: board
+
+
+boxText : Maybe Player -> String
 boxText place =
     case place of
-        Empty ->
-            ""
+        Nothing ->
+            " "
 
-        X ->
+        Just X ->
             "X"
 
-        O ->
+        Just O ->
             "O"
