@@ -1,0 +1,11 @@
+.game-row {
+  max-height: 50px;
+}
+
+.box {
+  padding: 2px;
+  border: 1px solid #333;
+  min-width: 50px;
+  min-height: 50px;
+  display: inline-block;
+}
