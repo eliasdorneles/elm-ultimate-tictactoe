@@ -14,8 +14,21 @@ type alias PlaceVal =
     Maybe Player
 
 
+type alias SmallBoard =
+    Board (Maybe Player)
+
+
+type alias BigBoard =
+    Board SmallBoard
+
+
+type Player
+    = X
+    | O
+
+
 type alias Model =
-    { currentPlayer : Player, board : Board }
+    { currentPlayer : Player, board : SmallBoard }
 
 
 main : Program Never Model Msg
@@ -31,7 +44,7 @@ main =
 init : ( Model, Cmd Msg )
 init =
     ( { currentPlayer = X
-      , board = []
+      , board = Board.empty Nothing
       }
     , Cmd.none
     )
@@ -42,7 +55,7 @@ update msg { currentPlayer, board } =
     case msg of
         Clicked position ->
             ( { currentPlayer = nextPlayer currentPlayer
-              , board = setPosition position currentPlayer board
+              , board = setPosition position (Just currentPlayer) board
               }
             , Cmd.none
             )
@@ -67,12 +80,12 @@ view { currentPlayer, board } =
         ]
 
 
-drawRow : Board -> Position -> Position -> Position -> Html Msg
+drawRow : SmallBoard -> Position -> Position -> Position -> Html Msg
 drawRow board left center right =
     H.div [ HA.class "row board-row" ] [ drawBox board left, drawBox board center, drawBox board right ]
 
 
-drawBox : Board -> Position -> Html Msg
+drawBox : SmallBoard -> Position -> Html Msg
 drawBox board position =
     H.span [ HA.class "box col-sm-4", HE.onClick (Clicked position) ] [ H.text (boxText (getPosition position board)) ]
 
