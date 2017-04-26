@@ -70,7 +70,7 @@ nextPlayer player =
 
 view : Model -> Html Msg
 view { currentPlayer, board } =
-    H.div []
+    H.div [ HA.class "container board-container" ]
         [ drawRow board TopLeft Top TopRight
         , drawRow board Left Center Right
         , drawRow board BottomLeft Bottom BottomRight
@@ -79,12 +79,12 @@ view { currentPlayer, board } =
 
 drawRow : Board -> Position -> Position -> Position -> Html Msg
 drawRow board left center right =
-    H.div [ HA.class "game-row" ] [ drawBox board left, drawBox board center, drawBox board right ]
+    H.div [ HA.class "row board-row" ] [ drawBox board left, drawBox board center, drawBox board right ]
 
 
 drawBox : Board -> Position -> Html Msg
 drawBox board position =
-    H.span [ HA.class "box", HE.onClick (Clicked position) ] [ H.text (boxText (getPosition position board)) ]
+    H.span [ HA.class "box col-sm-4", HE.onClick (Clicked position) ] [ H.text (boxText (getPosition position board)) ]
 
 
 getPosition : Position -> Board -> Maybe Player

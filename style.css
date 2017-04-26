@@ -1,4 +1,8 @@
-.game-row {
+.board-container {
+  width: 150px;
+}
+
+.board-row {
   max-height: 50px;
 }
 
@@ -8,4 +12,7 @@
   min-width: 50px;
   min-height: 50px;
   display: inline-block;
+  text-align: center;
+  font-size: 1.5em;
+  line-height: 44px; /* ugly hack to align vertically, fix later */
 }
