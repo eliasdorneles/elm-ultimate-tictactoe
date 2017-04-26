@@ -7,7 +7,7 @@ import Board exposing (..)
 
 
 type Msg
-    = Clicked Position
+    = Clicked Position Position
 
 
 type alias PlaceVal =
@@ -28,7 +28,7 @@ type Player
 
 
 type alias Model =
-    { currentPlayer : Player, board : SmallBoard }
+    { currentPlayer : Player, board : BigBoard }
 
 
 main : Program Never Model Msg
@@ -44,7 +44,7 @@ main =
 init : ( Model, Cmd Msg )
 init =
     ( { currentPlayer = X
-      , board = Board.empty Nothing
+      , board = Board.empty (Board.empty Nothing)
       }
     , Cmd.none
     )
@@ -53,12 +53,20 @@ init =
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg { currentPlayer, board } =
     case msg of
-        Clicked position ->
-            ( { currentPlayer = nextPlayer currentPlayer
-              , board = setPosition position (Just currentPlayer) board
-              }
-            , Cmd.none
-            )
+        Clicked bigPosition position ->
+            let
+                smallBoard =
+                    getPosition bigPosition board
+
+                updatedSmallBoard =
+                    setPosition position (Just currentPlayer) smallBoard
+
+                updatedModel =
+                    { currentPlayer = nextPlayer currentPlayer
+                    , board = setPosition bigPosition updatedSmallBoard board
+                    }
+            in
+                ( updatedModel, Cmd.none )
 
 
 nextPlayer : Player -> Player
@@ -73,28 +81,54 @@ nextPlayer player =
 
 view : Model -> Html Msg
 view { currentPlayer, board } =
-    H.div [ HA.class "container board-container" ]
-        [ drawRow board TopLeft Top TopRight
-        , drawRow board Left Center Right
-        , drawRow board BottomLeft Bottom BottomRight
+    drawBigBoard board
+
+
+drawBoard : (Position -> a -> Html Msg) -> Board a -> Html Msg
+drawBoard drawFunc board =
+    H.table [ HA.class "board-container" ]
+        [ H.tr [ HA.class "row board-row" ]
+            [ H.td [ HA.class "board-column" ] [ drawFunc TopLeft board.topLeft ]
+            , H.td [ HA.class "board-column" ] [ drawFunc Top board.top ]
+            , H.td [ HA.class "board-column" ] [ drawFunc TopRight board.topRight ]
+            ]
+        , H.tr [ HA.class "row board-row" ]
+            [ H.td [ HA.class "board-column" ] [ drawFunc Left board.left ]
+            , H.td [ HA.class "board-column" ] [ drawFunc Center board.center ]
+            , H.td [ HA.class "board-column" ] [ drawFunc Right board.right ]
+            ]
+        , H.tr [ HA.class "board-row" ]
+            [ H.td [ HA.class "board-column" ] [ drawFunc BottomLeft board.bottomLeft ]
+            , H.td [ HA.class "board-column" ] [ drawFunc Bottom board.bottom ]
+            , H.td [ HA.class "board-column" ] [ drawFunc BottomRight board.bottomRight ]
+            ]
         ]
 
 
-drawRow : SmallBoard -> Position -> Position -> Position -> Html Msg
-drawRow board left center right =
-    H.div [ HA.class "row board-row" ] [ drawBox board left, drawBox board center, drawBox board right ]
+drawSmallBoard : Position -> SmallBoard -> Html Msg
+drawSmallBoard bigPosition =
+    let
+        drawFunc position content =
+            H.span [ HA.class "box", HE.onClick (Clicked bigPosition position) ]
+                [ H.text (boxText content) ]
+    in
+        drawBoard drawFunc
 
 
-drawBox : SmallBoard -> Position -> Html Msg
-drawBox board position =
-    H.span [ HA.class "box col-sm-4", HE.onClick (Clicked position) ] [ H.text (boxText (getPosition position board)) ]
+drawBigBoard : BigBoard -> Html Msg
+drawBigBoard =
+    let
+        drawFunc position content =
+            drawSmallBoard position content
+    in
+        drawBoard drawFunc
 
 
 boxText : Maybe Player -> String
 boxText place =
     case place of
         Nothing ->
-            " "
+            "\x2003"
 
         Just X ->
             "X"

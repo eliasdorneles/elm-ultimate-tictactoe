@@ -1,9 +1,14 @@
-.board-container {
-  width: 150px;
+* {
+  font-family: sans-serif;
+  margin: 0;
+  padding: 0;
 }
 
-.board-row {
-  max-height: 50px;
+html {
+  box-sizing: border-box;
+}
+*, *:before, *:after {
+  box-sizing: inherit;
 }
 
 .box {
@@ -12,7 +17,8 @@
   min-width: 50px;
   min-height: 50px;
   display: inline-block;
+  height: 100%;
   text-align: center;
   font-size: 1.5em;
-  line-height: 44px; /* ugly hack to align vertically, fix later */
+  line-height: 44px; /* dirty hack to vertically align */
 }
