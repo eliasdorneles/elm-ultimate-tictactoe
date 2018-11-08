@@ -1,9 +1,10 @@
-module Main exposing (..)
+module Main exposing (BigBoard, Model, Msg(..), PlaceVal, Player(..), SmallBoard, boxText, drawBigBoard, drawBoard, drawSmallBoard, init, main, nextPlayer, update, view)
 
+import Board exposing (..)
+import Browser
 import Html as H exposing (Html)
 import Html.Attributes as HA
 import Html.Events as HE
-import Board exposing (..)
 
 
 type Msg
@@ -31,13 +32,12 @@ type alias Model =
     { currentPlayer : Player, board : BigBoard }
 
 
-main : Program Never Model Msg
+main : Program () ( Model, Cmd Msg ) Msg
 main =
-    H.program
+    Browser.sandbox
         { init = init
         , view = view
         , update = update
-        , subscriptions = always Sub.none
         }
 
 
@@ -50,8 +50,8 @@ init =
     )
 
 
-update : Msg -> Model -> ( Model, Cmd Msg )
-update msg { currentPlayer, board } =
+update : Msg -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
+update msg ( { currentPlayer, board }, cmd ) =
     case msg of
         Clicked bigPosition position ->
             let
@@ -66,7 +66,7 @@ update msg { currentPlayer, board } =
                     , board = setPosition bigPosition updatedSmallBoard board
                     }
             in
-                ( updatedModel, Cmd.none )
+            ( updatedModel, Cmd.none )
 
 
 nextPlayer : Player -> Player
@@ -79,8 +79,8 @@ nextPlayer player =
             X
 
 
-view : Model -> Html Msg
-view { currentPlayer, board } =
+view : ( Model, Cmd Msg ) -> Html Msg
+view ( { currentPlayer, board }, cmd ) =
     drawBigBoard board
 
 
@@ -112,7 +112,7 @@ drawSmallBoard bigPosition =
             H.span [ HA.class "box", HE.onClick (Clicked bigPosition position) ]
                 [ H.text (boxText content) ]
     in
-        drawBoard drawFunc
+    drawBoard drawFunc
 
 
 drawBigBoard : BigBoard -> Html Msg
@@ -121,14 +121,14 @@ drawBigBoard =
         drawFunc position content =
             drawSmallBoard position content
     in
-        drawBoard drawFunc
+    drawBoard drawFunc
 
 
 boxText : Maybe Player -> String
 boxText place =
     case place of
         Nothing ->
-            "\x2003"
+            "\u{2003}"
 
         Just X ->
             "X"
