@@ -1,4 +1,4 @@
-module Board exposing (..)
+module Board exposing (Board, Position(..), empty, getPosition, setPosition)
 
 
 type Position
